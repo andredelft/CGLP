@@ -1,7 +1,7 @@
-from Tools.uni_beta_code import beta2uni
-from Tools.uni_beta_code import uni2beta
 import regex
 import unicodedata
+import Tools.misc as m
+import Tools.uni_beta_code as ubc
 
 MACRON_BREVE = {
     '\u1fb8':'\u0391', # GREEK CAPITAL LETTER ALPHA WITH VRACHY
@@ -59,6 +59,16 @@ MISC_CHARS = {
 def misc_chars_filter(text):
     return text.translate(str.maketrans(MISC_CHARS))
 
+def normalize_greek(text, form = 'NFKC'):
+    text = macron_breve_filter(text)
+    text = unicodedata.normalize(form, text)
+    text = misc_chars_filter(text)
+    return text
+
+def clean_beta(text_uni):
+    text_uni = m.remove_diac(m.remove_capital(text_uni)) #filter capital mark (*) and diacritical marks in unicode string
+    text_beta = ubc.uni2beta(text_uni).replace('\n',' ')
+    return ''.join([char for char in text_beta if char not in m.non_beta_chars(text_beta)])
 """
 def normalize_greek(text):
     words = []
