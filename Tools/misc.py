@@ -13,7 +13,7 @@ def remove_capital(word_beta):
 
 def add_capital(word_beta):
     if word_beta[0] != '*':
-        first_diac = regex.search('(?<=^[a-zA-Z])[%s]+(?=[a-zA-Z])' % diac, word_beta)
+        first_diac = regex.search('(?<=^[a-zA-Z])[{}]+(?=[a-zA-Z])'.format(diac), word_beta)
         if first_diac != None:
             return '*' + first_diac.group() + word_beta[0] + word_beta[first_diac.end():]
         else:
@@ -23,10 +23,10 @@ def add_capital(word_beta):
 
 # Return characters that aren't part of the beta code
 def non_beta_chars(word_beta):
-    return regex.sub('[a-zA-Z* %s]' % diac, '', word_beta)
+    return regex.sub('[a-zA-Z* {}]'.format(diac), '', word_beta)
     
 def remove_diac(word_beta):
-    return regex.sub('[%s]'%diac,'',word_beta)
+    return regex.sub('[{}]'.format(diac),'',word_beta)
 
 def decompose(string):
     for char in string:

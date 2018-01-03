@@ -1,5 +1,6 @@
 import regex
 import unicodedata
+
 import Tools.misc as m
 import Tools.uni_beta_code as ubc
 
@@ -64,25 +65,3 @@ def normalize_greek(text, form = 'NFKC'):
     text = unicodedata.normalize(form, text)
     text = misc_chars_filter(text)
     return text
-
-def clean_beta(text_uni):
-    text_uni = m.remove_diac(m.remove_capital(text_uni)) #filter capital mark (*) and diacritical marks in unicode string
-    text_beta = ubc.uni2beta(text_uni).replace('\n',' ')
-    return ''.join([char for char in text_beta if char not in m.non_beta_chars(text_beta)])
-"""
-def normalize_greek(text):
-    words = []
-    for word in text.split():
-        if ''.join(regex.findall('[A-Za-z]',word)) == word:
-            # Make sure to skip words that are entirely in latin form
-            words.append(word)
-        else:
-            for (repl,new) in pattern[0]:
-                word = repl.sub(new,word)
-            words.append(word)
-    
-        for (i,p) in enumerate(pattern):
-            for (repl,new) in p:
-                word = repl.sub(new,word)
-        
-    return ' '.join(words)"""

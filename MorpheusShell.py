@@ -1,23 +1,29 @@
 import regex
-import Tools.uni_beta_code as ubc
 import os
 import requests
-from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup
 
-""" Run C script of Morpheus from Python
+import Tools.misc as m
+import Tools.uni_beta_code as ubc
+
+""" Run C script of Morpheus from within Python
+    Morpheus root folder should be located at ./morpheus
     Returns 1 for succes, 0 for failure"""
 def cruncher(filename, switch = ''):
     if filename.split('.')[-1] == 'words':
         filename = os.path.splitext(filename)[0]
         print('Start Morpheus')
-        os.system('MORPHLIB=morpheus/stemlib morpheus/bin/cruncher %s %s' % (switch, filename))
+        os.system('MORPHLIB={} {} {} {}'.format(os.path.join('morpheus','stemlib'),
+                                                os.path.join('morpheus','bin','cruncher'),
+                                                switch, filename))
         print('Exit Morpheus')
         return 1
     else:
         print('Incorrect file: extension .words is necessary for the Morpheus cruncher')
         return 0
 
-""" Extracts all data from raw Morpheus output in the form [[[lemmata1],[categories]], [[lemmata2],[categories2]], ...]"""
+""" Extracts all data from raw Morpheus output in the form:
+[[[lemmata1],[categories]], [[lemmata2],[categories2]], ...]"""
 def morph2data(morphout):
     outs = regex.findall('(?<=<NL>[A-Z] )([^\t ]+)[\t ](.+?)(?=</NL>)',morphout)
     data = []
@@ -37,8 +43,13 @@ def morpheus(tag, switch = '', cap = False):
     if cap:
         with open(tag + '.failed') as f:
             words = f.read().split()
-        words_cap = [me.remove_capital(word) for word in words if word[0] == '*']
-        print("%s capitalized words found, retrying without capitals" % len(words_cap))
+        words_cap = [m.remove_capital(word) for word in words if word[0] == '*']
+        if len(words_cap) == 0:
+            print('0 capitalized words found')
+            return
+        else:
+            print("{} capitalized word{} found, retrying without capitals".format(len(words_cap),
+                                                                                  '' if len(words_cap) == 1 else 's'))
         with open(tag + '_cap.words','w') as f:
             f.write('\n'.join(words_cap))
         cruncher(tag + '_cap.words', switch)
@@ -49,8 +60,8 @@ def morpheus(tag, switch = '', cap = False):
             rep2 = f.read()
         n1 = [int(n) for n in regex.findall('[0-9.]+',rep1)[:2]]
         n2 = [int(n) for n in regex.findall('[0-9.]+',rep2)[:2]]
-        rep_tot = 'TOTAL:  words %s, analyzed %s (%.2f pct)' % (n1[0], n1[1]+n2[1], 100*(n1[1]+n2[1])/n1[0])
-        with open(tag + '_stats','a') as f:
+        rep_tot = 'TOTAL:  words {:d}, analyzed {:d} ({:.2f} pct)'.format(n1[0], n1[1]+n2[1], 100*(n1[1]+n2[1])/n1[0])
+        with open(tag + '.stats','a') as f:
             f.write('\nDecapitalization routine:\n' + rep2)
             f.write('\n' + rep_tot)
         print(rep_tot)
@@ -67,7 +78,7 @@ Pers_dict = {
 
 # Scrape the morphological analysis from the online tool available at http://www.perseus.tufts.edu/hopper
 def scrape_Perseus(word_beta):
-    url = "http://www.perseus.tufts.edu/hopper/morph?l=%s&la=greek" % word_beta.translate(Pers_dict)
+    url = "http://www.perseus.tufts.edu/hopper/morph?l={}&la=greek".format(word_beta.translate(Pers_dict))
     content = requests.get(url).content.decode('utf-8')
     soup = BeautifulSoup(content, 'html.parser')
     
