@@ -22,6 +22,15 @@ def cruncher(filename, switch = ''):
         print('Incorrect file: extension .words is necessary for the Morpheus cruncher')
         return 0
 
+def compile_stemlib(lang = 'Greek'):
+    try:
+        os.chdir(os.path.join('morpheus','stemlib',lang))
+    except FileNotFoundError:
+        print('{} is an unsupported language'.format(lang))
+        return
+ #   os.system()
+ #   os.system()
+
 """ Extracts all data from raw Morpheus output in the form:
 [[[lemmata1],[categories]], [[lemmata2],[categories2]], ...]"""
 def morph2data(morphout):
@@ -39,7 +48,8 @@ def morpheus(tag, switch = '', cap = False):
     
     cruncher(tag + '.words', switch)
     
-    # Retry the capitalized words without capitals: SHOULD BE DONE IN THE C CODE, BUT DOESN'T DO IT
+    # Retry the capitalized words without capitals:
+    # SHOULD BE DONE IN THE SOURCE CODE, BUT DOESN'T DO IT FOR SOME REASON
     if cap:
         with open(tag + '.failed') as f:
             words = f.read().split()
@@ -60,7 +70,7 @@ def morpheus(tag, switch = '', cap = False):
             rep2 = f.read()
         n1 = [int(n) for n in regex.findall('[0-9.]+',rep1)[:2]]
         n2 = [int(n) for n in regex.findall('[0-9.]+',rep2)[:2]]
-        rep_tot = 'TOTAL:  words {:d}, analyzed {:d} ({:.2f} pct)'.format(n1[0], n1[1]+n2[1], 100*(n1[1]+n2[1])/n1[0])
+        rep_tot = 'TOTAL:  words {}, analyzed {} ({:.2f} pct)'.format(n1[0], n1[1]+n2[1], 100*(n1[1]+n2[1])/n1[0])
         with open(tag + '.stats','a') as f:
             f.write('\nDecapitalization routine:\n' + rep2)
             f.write('\n' + rep_tot)

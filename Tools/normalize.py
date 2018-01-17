@@ -5,6 +5,9 @@ import Tools.misc as m
 import Tools.uni_beta_code as ubc
 
 MACRON_BREVE = {
+    '\u0304':'', # COMBINING MACRON
+    '\u0306':'', # COMBINING BREVE
+    '\u0342':'', # COMBINING GREEK PERISPOMENI
     '\u1fb8':'\u0391', # GREEK CAPITAL LETTER ALPHA WITH VRACHY
     '\u1fb9':'\u0391', # GREEK CAPITAL LETTER ALPHA WITH MACRON
     '\u1fb0':'\u03b1', # GREEK SMALL LETTER ALPHA WITH VRACHY
@@ -16,9 +19,7 @@ MACRON_BREVE = {
     '\u1fe8':'\u03a5', # GREEK CAPITAL LETTER UPSILON WITH VRACHY
     '\u1fe9':'\u03a5', # GREEK CAPITAL LETTER UPSILON WITH MACRON
     '\u1fe0':'\u03c5', # GREEK SMALL LETTER UPSILON WITH VRACHY
-    '\u1fe1':'\u03c5', # GREEK SMALL LETTER UPSILON WITH MACRON
-    '\u0304':'', # COMBINING MACRON
-    '\u0306':''  # COMBINING BREVE
+    '\u1fe1':'\u03c5'  # GREEK SMALL LETTER UPSILON WITH MACRON
 }
 
 def macron_breve_filter(text):
@@ -49,19 +50,23 @@ MISC_CHARS = {
     '\u0457':'\u03ca', # CYRILLIC SMALL LETTER YI
     '\u0470':'\u03a8', # CYRILLIC CAPITAL LETTER PSI
     
-    # GREEK_AND_COPTIC
+    # GREEK AND COPTIC
     '\u03db':'\u03c2', # GREEK SMALL LETTER STIGMA
     
     # OTHER
+    '\u00b5':'\u03bc', # MICRO SIGN
     '\u05d0':'\u03ba', # HEBREW LETTER ALEF
-    '\u00df':'\u03b2'  # LATIN SMALL LETTER SHARP S
+    '\u00df':'\u03b2', # LATIN SMALL LETTER SHARP S
+    '\u00a1':'\u03b9'  # INVERTED EXCLAMATION MARK
 }
 
 def misc_chars_filter(text):
     return text.translate(str.maketrans(MISC_CHARS))
 
-def normalize_greek(text, form = 'NFKC'):
-    text = macron_breve_filter(text)
-    text = unicodedata.normalize(form, text)
+def normalize_greek(text, form = 'NFC'):
+    text = unicodedata.normalize('NFD',text) # Decomposition to filter combined characters better
     text = misc_chars_filter(text)
+    text = macron_breve_filter(text)
+    if form != 'NFD':
+        text = unicodedata.normalize(form, text)
     return text

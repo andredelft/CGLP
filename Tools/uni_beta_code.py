@@ -3,6 +3,7 @@ import unicodedata
 import string
 import json
 import os
+import regex
 
 from cltk.corpus.greek.beta_to_unicode import Replacer
 from cltk.corpus.utils.formatter import cltk_normalize
@@ -35,3 +36,8 @@ def clean_beta(text_uni):
     text_uni = m.remove_diac(m.remove_capital(text_uni)) #filter capital mark (*) and diacritical marks in unicode string
     text_beta = uni2beta(text_uni).replace('\n',' ')
     return ''.join(char for char in text_beta if char not in m.non_beta_chars(text_beta))
+
+def non_greek_chars(word_uni):
+    diac_chars = regex.sub('[^*{}]'.format(m.diac),'',word_uni)
+    word_beta = uni2beta(word_uni)
+    return diac_chars + m.non_beta_chars(word_beta)
