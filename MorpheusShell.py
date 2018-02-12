@@ -22,22 +22,46 @@ def cruncher(filename, switch = ''):
         print('Incorrect file: extension .words is necessary for the Morpheus cruncher')
         return 0
 
+def cruncher_single(word_beta, switch = '', raw = False, beta = True):
+    with open('log.words','w') as f:
+        f.write(word_beta)
+    cruncher('log.words',switch)
+    with open('log.morph') as f:
+        try:
+            morphout = f.read().split('\n')[-2]
+        except IndexError:
+            morphout = ''
+        
+    os.remove('log.words')
+    os.remove('log.failed')
+    os.remove('log.stats')
+    os.remove('log.morph')
+    
+    if raw:
+        return morphout
+    else:
+        return morph2data(morphout,beta)
+
 def compile_stemlib(lang = 'Greek'):
     try:
-        os.chdir(os.path.join('morpheus','stemlib',lang))
+        cwd = os.getcwd()
+        os.chdir(os.path.join(cwd,'Morpheus','stemlib',lang))
+        os.system('export PATH=$PATH:{};MORPHLIB=.. make all'.format(os.path.join('..','..','bin')))
+        os.chdir(cwd)
     except FileNotFoundError:
         print('{} is an unsupported language'.format(lang))
         return
- #   os.system()
- #   os.system()
 
 """ Extracts all data from raw Morpheus output in the form:
 [[[lemmata1],[categories]], [[lemmata2],[categories2]], ...]"""
-def morph2data(morphout):
+def morph2data(morphout,beta=False):
     outs = regex.findall('(?<=<NL>[A-Z] )([^\t ]+)[\t ](.+?)(?=</NL>)',morphout)
     data = []
     for out in outs:
-        lemmata = [regex.sub('[/^—//1-3]','',ubc.beta2uni(word)) for word in out[0].split(',')]
+        if beta:
+            lemmata = [word for word in out[0].split(',')]
+        else:
+            lemmata = [ubc.beta2uni(regex.sub('[_^0-9]','',word)) for word in out[0].split(',')]
         categories = out[1].split()
         data.append([lemmata,categories])
     return(data)
@@ -75,7 +99,28 @@ def morpheus(tag, switch = '', cap = False):
             f.write('\nDecapitalization routine:\n' + rep2)
             f.write('\n' + rep_tot)
         print(rep_tot)
-    
+
+def add(nom_file = 'Morpheus/stemlib/Greek/stemsrc/nom37.montanari'):
+    line = input()
+    while line != 'exit':
+        morphout = cruncher_single(line,raw=True)
+        if morphout == '':
+            print('{} not recognized by Morpheus'.format(line))
+            type = input('Type: ')
+            lemma = input('Lemma: ')
+            stem = input('Stem: ')
+            tags = input('Tags: ')
+            inflection_group = input('Inflection group: ')
+            if not os.path.isfile('Morpheus/stemlib/Greek/endtables/source/{}.end'.format(inflection_group)):
+                print('Inflection group not recognized')
+            else:
+                data = ":le:{}\n:{}:{} {} {}".format(lemma,type,stem,inflection_group,tags)
+                print(data)
+                with open(nom_file,'a') as f:
+                    f.write('\n\n{}'.format(data))
+        else:
+            print(morphout)
+        line = input()    
 
 Pers_dict = {
     ord('('): '%28',

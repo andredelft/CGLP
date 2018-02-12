@@ -21,8 +21,9 @@ for character in UPPER:
 for character in LOWER:
     dict[ord(character[1])] = character[0]
 
-def uni2beta(text_uni):
-    text_uni = unicodedata.normalize('NFC',text_uni)
+def uni2beta(text_uni, normalize = True):
+    if normalize:
+        text_uni = unicodedata.normalize('NFC',text_uni)
     text_beta = text_uni.translate(dict)
     text_beta = text_beta.translate(str.maketrans(string.ascii_uppercase,string.ascii_lowercase))
     return text_beta
@@ -37,7 +38,12 @@ def clean_beta(text_uni):
     text_beta = uni2beta(text_uni).replace('\n',' ')
     return ''.join(char for char in text_beta if char not in m.non_beta_chars(text_beta))
 
-def non_greek_chars(word_uni):
-    diac_chars = regex.sub('[^*{}]'.format(m.diac),'',word_uni)
-    word_beta = uni2beta(word_uni)
-    return diac_chars + m.non_beta_chars(word_beta)
+def non_greek_chars(text_uni, unique = True, whitespace = False):
+    beta_chars = regex.sub('[^*{}a-zA-Z]'.format(m.diac),'',text_uni)
+    text_beta = uni2beta(text_uni, normalize = False)
+    if not whitespace:
+        text_beta = regex.sub(r'\s','',text_beta)
+    if unique:
+        return sorted(set(beta_chars + m.non_beta_chars(text_beta)))
+    else:
+        return list(beta_chars + m.non_beta_chars(text_beta))
