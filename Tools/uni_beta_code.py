@@ -10,21 +10,18 @@ from cltk.corpus.utils.formatter import cltk_normalize
 
 import Tools.misc as m
 
-with open(os.path.join('Tools','LOWER.json')) as f:
-    LOWER = json.load(f)
-with open(os.path.join('Tools','UPPER.json')) as f:
-    UPPER = json.load(f)
-
-dict = {}
-for character in UPPER:
-    dict[ord(character[1])] = character[0]
-for character in LOWER:
-    dict[ord(character[1])] = character[0]
+import inspect
+cwd = os.path.dirname(inspect.getfile(inspect.currentframe()))
+with open(os.path.join(cwd,'LOWER.json')) as f:
+    LOWER_dict = json.load(f)
+with open(os.path.join(cwd,'UPPER.json')) as f:
+    UPPER_dict = json.load(f)
+uni_dict = {**UPPER_dict,**LOWER_dict}
 
 def uni2beta(text_uni, normalize = True):
     if normalize:
         text_uni = unicodedata.normalize('NFC',text_uni)
-    text_beta = text_uni.translate(dict)
+    text_beta = text_uni.translate(str.maketrans(uni_dict))
     text_beta = text_beta.translate(str.maketrans(string.ascii_uppercase,string.ascii_lowercase))
     return text_beta
 

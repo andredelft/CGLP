@@ -6,6 +6,9 @@ from bs4 import BeautifulSoup
 import Tools.misc as m
 import Tools.uni_beta_code as ubc
 
+import inspect
+__file__ = os.path.dirname(inspect.getfile(inspect.currentframe()))
+
 """ Run C script of Morpheus from within Python
     Morpheus root folder should be located at ./morpheus
     Returns 1 for succes, 0 for failure"""
@@ -13,8 +16,8 @@ def cruncher(filename, switch = ''):
     if filename.split('.')[-1] == 'words':
         filename = os.path.splitext(filename)[0]
         print('Start Morpheus')
-        os.system('MORPHLIB={} {} {} {}'.format(os.path.join('morpheus','stemlib'),
-                                                os.path.join('morpheus','bin','cruncher'),
+        os.system('MORPHLIB={} {} {} {}'.format(os.path.join(__file__,'morpheus','stemlib'),
+                                                os.path.join(__file__,'morpheus','bin','cruncher'),
                                                 switch, filename))
         print('Exit Morpheus')
         return 1
@@ -23,19 +26,19 @@ def cruncher(filename, switch = ''):
         return 0
 
 def cruncher_single(word_beta, switch = '', raw = False, beta = True):
-    with open('log.words','w') as f:
+    with open(os.path.join(__file__,'log.words'),'w') as f:
         f.write(word_beta)
-    cruncher('log.words',switch)
-    with open('log.morph') as f:
+    cruncher(os.path.join(__file__,'log.words'),switch)
+    with open(os.path.join(__file__,'log.morph')) as f:
         try:
             morphout = f.read().split('\n')[-2]
         except IndexError:
             morphout = ''
         
-    os.remove('log.words')
-    os.remove('log.failed')
-    os.remove('log.stats')
-    os.remove('log.morph')
+    os.remove(os.path.join(__file__,'log.words'))
+    os.remove(os.path.join(__file__,'log.failed'))
+    os.remove(os.path.join(__file__,'log.stats'))
+    os.remove(os.path.join(__file__,'log.morph'))
     
     if raw:
         return morphout
@@ -45,7 +48,7 @@ def cruncher_single(word_beta, switch = '', raw = False, beta = True):
 def compile_stemlib(lang = 'Greek'):
     try:
         cwd = os.getcwd()
-        os.chdir(os.path.join(cwd,'Morpheus','stemlib',lang))
+        os.chdir(os.path.join(__file__,'Morpheus','stemlib',lang))
         os.system('export PATH=$PATH:{};MORPHLIB=.. make all'.format(os.path.join('..','..','bin')))
         os.chdir(cwd)
     except FileNotFoundError:
@@ -70,7 +73,7 @@ def morpheus(tag, switch = '', cap = False):
     # Remove possible .words extension
     tag = os.path.splitext(tag)[0]
     
-    cruncher(tag + '.words', switch)
+    cruncher(tag+'.words', switch)
     
     # Retry the capitalized words without capitals:
     # SHOULD BE DONE IN THE SOURCE CODE, BUT DOESN'T DO IT FOR SOME REASON
