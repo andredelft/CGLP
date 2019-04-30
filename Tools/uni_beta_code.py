@@ -1,4 +1,4 @@
-""" Edit from the cltk beta_to_unicode script, to do the reverse operation """
+""" Edit from the cltk beta_to_unicode script"""
 import unicodedata
 import string
 import json
@@ -6,9 +6,10 @@ import os
 import regex
 
 from cltk.corpus.greek.beta_to_unicode import Replacer
-from cltk.corpus.utils.formatter import cltk_normalize
 
 import Tools.misc as m
+
+diac = '()/\\\\=|+'
 
 import inspect
 cwd = os.path.dirname(inspect.getfile(inspect.currentframe()))
@@ -35,12 +36,20 @@ def clean_beta(text_uni):
     text_beta = uni2beta(text_uni).replace('\n',' ')
     return ''.join(char for char in text_beta if char not in m.non_beta_chars(text_beta))
 
+def non_beta_chars(text_beta):
+    return regex.sub('[a-zA-Z* {}]'.format(diac), '', text_beta)
+
 def non_greek_chars(text_uni, unique = True, whitespace = False):
     beta_chars = regex.sub('[^*{}a-zA-Z]'.format(m.diac),'',text_uni)
-    text_beta = uni2beta(text_uni, normalize = False)
+    text_beta = uni2beta(text_uni)
     if not whitespace:
-        text_beta = regex.sub(r'\s','',text_beta)
+        text_beta = regex.sub('\s','',text_beta)
     if unique:
-        return sorted(set(beta_chars + m.non_beta_chars(text_beta)))
+        return sorted(set(beta_chars + non_beta_chars(text_beta)))
     else:
-        return list(beta_chars + m.non_beta_chars(text_beta))
+        return list(beta_chars + non_beta_chars(text_beta))
+
+def is_greek(word_uni, whitespace = True):
+    if not whitespace and regex.search('\s',word_uni):
+        return False
+    return non_greek_chars(word_uni) == []

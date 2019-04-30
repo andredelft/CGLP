@@ -22,13 +22,13 @@ def add_capital(word_beta):
         return word_beta
 
 # Return characters that aren't part of the beta code
-def non_beta_chars(word_beta):
-    return regex.sub('[a-zA-Z* {}]'.format(diac), '', word_beta)
+
     
 def remove_diac(word_beta):
     return regex.sub('[{}]'.format(diac),'',word_beta)
 
-def decompose(string):
+def decompose(string, filename = ''):
+    decomp = []
     for char in string:
         if len(hex(ord(char))[2:]) <= 4:
             HEX = 'U+{:>4}'.format(hex(ord(char))[2:]).replace(' ','0')
@@ -38,4 +38,9 @@ def decompose(string):
             NAME = unicodedata.name(char)
         except ValueError:
             NAME = ''
-        print(char,HEX,NAME)
+        decomp.append(' '.join([char,HEX,NAME]))
+    if filename != '':
+        with open(filename, 'w') as f:
+            f.write('\n'.join(decomp))
+    else:
+        print('\n'.join(decomp))
